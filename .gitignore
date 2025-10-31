@@ -1,0 +1,44 @@
+# Python 캐시 및 컴파일된 파일
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 배포 관련
+instance/
+.webassets-cache
+
+# 환경변수 파일
+.env
+
+# DB 파일 (SQLite 사용시)
+*.sqlite3
+
+# 테스트 및 커버리지 결과
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 가상환경 디렉토리
+.venv/
+venv/
+ENV/
+env/
+virtualenv/
+myenv/
+
+# VSCode 설정
+.vscode/
+
+# PyCharm 설정
+.idea/
+
+# 로그파일
+*.log
+
+# 시스템 파일
+.DS_Store
+Thumbs.db
+
+# macOS 파일
+*.swp
+*~
