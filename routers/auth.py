@@ -10,18 +10,19 @@ from models.user import User
 from schemas.token import Token
 from schemas.user import UserOut
 from starlette.responses import RedirectResponse
+from core.config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SECRET_KEY, FRONTEND_URL
+
 
 
 router = APIRouter(tags=["Auth"])
 
-SECRET = os.getenv("SECRET_KEY")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/callback/google")
 
 oauth = OAuth()
 oauth.register(
     name="google",
-    client_id=os.getenv("GOOGLE_CLIENT_ID"),
-    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+    client_id=GOOGLE_CLIENT_ID,
+    client_secret=GOOGLE_CLIENT_SECRET,
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={"scope": "openid email profile"},
 )  # 구글 OAuth2 클라이언트 등록 :contentReference[oaicite:1]{index=1}
@@ -43,7 +44,7 @@ def create_access_token(data: dict, expires_seconds: int = 3600):
             "exp": now + timedelta(seconds=expires_seconds),
         }
     )
-    return jwt.encode(to_encode, SECRET, algorithm="HS256")
+    return jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
 
 
 @router.get("/callback/google", name="auth_callback_google", response_model=Token)
@@ -70,8 +71,7 @@ async def auth_callback_google(request: Request, db: Session = Depends(get_db)):
         db.refresh(user)
     # 2) JWT 발급
     access_token = create_access_token({"user_id": user.id})
-    frontend = os.getenv("FRONTEND_URL")
-    redirect_to = f"{frontend}/dashboard?token={access_token}"
+    redirect_to = f"{FRONTEND_URL}/dashboard?token={access_token}"
     return RedirectResponse(redirect_to)
 
 
@@ -79,7 +79,7 @@ async def get_current_user(
     token: str = Security(oauth2_scheme), db: Session = Depends(get_db)
 ):
     try:
-        payload = jwt.decode(token, SECRET, algorithms=["HS256"])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         user_id = payload.get("user_id")
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="토큰이 유효하지 않습니다")

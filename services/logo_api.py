@@ -1,10 +1,9 @@
 # services/logo_api.py
-import os
+from core.config import LOGO_PUBLISHABLE_KEY
 from urllib.parse import urlparse, parse_qs
 from sqlalchemy.orm import Session
 from models.company_overview import CompanyOverviews
 
-LOGO_PUBLISHABLE_KEY = os.getenv("LOGO_PUBLISHABLE_KEY") or ""
 BASE_IMG_URL = "https://img.logo.dev"
 
 

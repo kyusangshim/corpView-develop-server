@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Query
 import httpx
-import os
 import html
 import asyncio
 import hashlib
+from core.config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
 
 router = APIRouter()
 CATEGORIES = ["전체", "채용", "주가", "노사", "IT"]
@@ -12,14 +12,12 @@ def make_id(text: str) -> str:
     return hashlib.md5(text.encode("utf-8")).hexdigest()
 
 async def fetch_news(query: str):
-    client_id = os.getenv("NAVER_CLIENT_ID")
-    client_secret = os.getenv("NAVER_CLIENT_SECRET")
-    if not client_id or not client_secret:
+    if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
         raise RuntimeError("NAVER_CLIENT_ID 또는 NAVER_CLIENT_SECRET 환경변수가 없습니다.")
     
     headers = {
-        "X-Naver-Client-Id": client_id,
-        "X-Naver-Client-Secret": client_secret
+        "X-Naver-Client-Id": NAVER_CLIENT_ID,
+        "X-Naver-Client-Secret": NAVER_CLIENT_SECRET
     }
     url = f"https://openapi.naver.com/v1/search/news.json?query={query}&display=5&sort=sim"
     async with httpx.AsyncClient() as client:
@@ -47,15 +45,13 @@ async def fetch_news(query: str):
 
 @router.get("/news")
 async def get_news(query: str = Query(...)):
-    client_id = os.getenv("NAVER_CLIENT_ID")
-    client_secret = os.getenv("NAVER_CLIENT_SECRET")
 
-    if not client_id or not client_secret:
+    if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
         raise RuntimeError("환경변수 NAVER_CLIENT_ID 또는 NAVER_CLIENT_SECRET가 설정되지 않았습니다.")
 
     headers = {
-        "X-Naver-Client-Id": client_id,
-        "X-Naver-Client-Secret": client_secret
+        "X-Naver-Client-Id": NAVER_CLIENT_ID,
+        "X-Naver-Client-Secret": NAVER_CLIENT_SECRET
     }
 
     url = f"https://openapi.naver.com/v1/search/news.json?query={query}&display=5&sort=sim"

@@ -1,8 +1,4 @@
-from dotenv import load_dotenv
-import os
-
-load_dotenv(override=True)
-
+from core.config import SECRET_KEY
 from fastapi import FastAPI, Request, Response
 from routers import auth, users, dart, naver_news, summary, dart_search, industry_search
 from core.database import Base, engine
@@ -25,7 +21,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY"))
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 
 @app.middleware("http")

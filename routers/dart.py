@@ -2,12 +2,9 @@ from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from models.company_overview import CompanyOverviews
 from core.database import get_db
-import os
 import requests as rq
 import pandas as pd
-
-
-DART_API = os.getenv("dart_api_key")
+from core.config import DART_API
 
 router = APIRouter()
 

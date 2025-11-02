@@ -1,9 +1,9 @@
-import os
 import httpx
 from fastapi import HTTPException
+from core.config import GROQ_API_KEY, GROQ_URL
 
-GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+
 SYSTEM_PROMPT = [
     "You are a professional financial analyst and summarizer.",
     "입력 데이터:",
