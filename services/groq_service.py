@@ -21,7 +21,7 @@ SYSTEM_PROMPT = [
 async def summarize(company_name: str, fin_text: str, news_text: str) -> str:
     async with httpx.AsyncClient(timeout=30.0) as client:
         payload = {
-            "model": "gemma2-9b-it",
+            "model": "openai/gpt-oss-120b",
             "messages": [
                 {"role": "system", "content": " ".join(SYSTEM_PROMPT)},
                 {
