@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, JSON, DateTime, UniqueConstraint
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship
-from database import Base
+from core.database import Base
 from datetime import datetime
 import pytz
 

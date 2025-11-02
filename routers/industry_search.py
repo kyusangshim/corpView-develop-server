@@ -6,7 +6,7 @@ from models.user_industry_favorite import UserIndustryFavorite
 from models.industry_classification import IndustryClassification
 from models.company_overview import CompanyOverviews
 from schemas.user import IndustryCategoryNode
-from database import get_db
+from core.database import get_db
 from sqlalchemy.sql.expression import func
 from services.logo_api import update_company_logo
 from typing import List

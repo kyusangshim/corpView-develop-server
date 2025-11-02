@@ -1,7 +1,7 @@
 from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from models.company_overview import CompanyOverviews
-from database import get_db
+from core.database import get_db
 import os
 import requests as rq
 import pandas as pd

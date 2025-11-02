@@ -5,7 +5,7 @@ load_dotenv(override=True)
 
 from fastapi import FastAPI, Request, Response
 from routers import auth, users, dart, naver_news, summary, dart_search, industry_search
-from database import Base, engine
+from core.database import Base, engine
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint
 from sqlalchemy.dialects.mysql import VARCHAR
 from sqlalchemy.orm import relationship
-from database import Base
+from core.database import Base
 from datetime import datetime
 
 

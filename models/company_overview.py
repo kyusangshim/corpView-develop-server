@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Text, TIMESTAMP, Integer
 from sqlalchemy.dialects.mysql import VARCHAR
-from database import Base
+from core.database import Base
 
 
 class CompanyOverviews(Base):

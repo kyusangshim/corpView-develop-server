@@ -2,7 +2,7 @@
 from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from models.company_overview import CompanyOverviews
-from database import get_db
+from core.database import get_db
 from services.logo_api import update_company_logo
 
 router = APIRouter()

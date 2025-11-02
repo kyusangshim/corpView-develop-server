@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.logger import logger
 from sqlalchemy.orm import Session
-from database import get_db
+from core.database import get_db
 from services.groq_service import summarize
 from services.summary_crud import create_summary, get_recent_summary, update_summary
 from schemas.summary import (
