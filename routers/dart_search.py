@@ -3,7 +3,6 @@ from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from models.company_overview import CompanyOverviews
 from core.database import get_db
-from services.logo_api import update_company_logo
 
 router = APIRouter()
 
@@ -22,8 +21,6 @@ def get_bords(keyword: str, db: Session = Depends(get_db)):
 
     result_list = []
     for comp in companies:
-        # 로고가 없으면 업데이트
-        comp.logo = update_company_logo(comp, db)
         result_list.append(
             {
                 "corp_code": comp.corp_code,
@@ -51,8 +48,6 @@ def get_best_companies(db: Session = Depends(get_db)):
 
     result_list = []
     for comp in best_results:
-        # 로고가 없으면 업데이트
-        comp.logo = update_company_logo(comp, db)
         result_list.append(
             {
                 "corp_code": comp.corp_code,

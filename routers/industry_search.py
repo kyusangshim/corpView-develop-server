@@ -8,7 +8,6 @@ from models.company_overview import CompanyOverviews
 from schemas.user import IndustryCategoryNode
 from core.database import get_db
 from sqlalchemy.sql.expression import func
-from services.logo_api import update_company_logo
 from typing import List
 from services.auth_service import get_current_user
 from models.user import User as UserModel
@@ -63,7 +62,6 @@ def get_data(industry_code: int, db: Session = Depends(get_db)):
 
     result_list = []
     for row in result:
-        row.logo = update_company_logo(row, db)
         result_list.append({
             "corp_code": row.corp_code,
             "corp_name": row.corp_name,
