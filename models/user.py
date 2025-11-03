@@ -25,8 +25,7 @@ class User(Base):
 
     preferences    = Column(MutableList.as_mutable(JSON), default=list, nullable=False)
     favorites      = Column(MutableList.as_mutable(JSON), default=list, nullable=False)
-    favorites_industries = relationship("UserIndustryFavorite", back_populates="user")
-
+    
     # 생성 시각 (한국 시각)
     created_at = Column(
         DateTime(timezone=True),

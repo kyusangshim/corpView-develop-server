@@ -24,3 +24,13 @@ def create_user_from_oauth(db: Session, user_info: dict) -> User:
     db.commit()
     db.refresh(new_user)
     return new_user
+
+
+def get_user_preferences_by_id(db: Session, user_id: int):
+    """사용자의 산업 환경설정(preferences)을 조회합니다."""
+    favorite = (
+        db.query(User.preferences)
+        .filter(User.id == user_id)
+        .first()
+    )
+    return favorite.preferences if favorite else None

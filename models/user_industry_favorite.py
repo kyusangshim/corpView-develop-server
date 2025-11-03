@@ -1,8 +1,6 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint
-from sqlalchemy.dialects.mysql import VARCHAR
+from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from core.database import Base
-from datetime import datetime
 
 
 
