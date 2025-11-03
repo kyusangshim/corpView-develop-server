@@ -10,7 +10,7 @@ from core.database import get_db
 from sqlalchemy.sql.expression import func
 from services.logo_api import update_company_logo
 from typing import List
-from routers.auth import get_current_user
+from services.auth_service import get_current_user
 from models.user import User as UserModel
 
 router = APIRouter()
