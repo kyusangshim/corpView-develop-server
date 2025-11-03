@@ -3,7 +3,7 @@
 from fastapi import HTTPException
 from fastapi.logger import logger
 from sqlalchemy.orm import Session
-from typing import Dict, List
+from utils.utils import _format_financial, _format_news
 
 # 1. 의존성 임포트 (Repository, Service, Schema)
 from repository import summary_repository
@@ -12,25 +12,7 @@ from schemas.summary import (
     SummaryCreate,
     SummaryOut,
     SummaryRequest,
-    NewsArticle,
-    RawFinancialEntry,
 )
-
-# 2. 헬퍼 함수 (라우터에서 이동)
-def _format_financial(raw: Dict[str, RawFinancialEntry]) -> str:
-    lines: List[str] = []
-    for year in sorted(raw.keys()):
-        entry = raw[year]
-        lines.append(
-            f"{year}년 자본총계 {entry.자본총계:,}원, 매출액 {entry.매출액:,}원, 영업이익 {entry.영업이익:,}원, 당기순이익 {entry.당기순이익:,}원"
-        )
-    return "\n".join(lines)
-
-def _format_news(articles: List[NewsArticle]) -> str:
-    return "\n".join(
-        f"{a.title} ({a.pubDate.strftime('%Y-%m-%d %H:%M')}) - {a.link}"
-        for a in articles
-    )
 
 # 3. 메인 비즈니스 로직 (라우터에서 이동)
 async def generate_and_save_summary(

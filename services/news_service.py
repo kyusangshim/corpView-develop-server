@@ -1,19 +1,15 @@
 import httpx
 import html
 import asyncio
-import hashlib
 from fastapi import HTTPException
 from typing import List, Dict
 
 from core.config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
 from schemas.news import NewsArticle # 1단계에서 만든 스키마
+from utils.utils import _make_id
 
 # 카테고리 목록은 이 서비스를 사용하는 곳에 두는 것이 좋습니다.
 CATEGORIES = ["전체", "채용", "주가", "노사", "IT"]
-
-def _make_id(text: str) -> str:
-    """링크 텍스트로 고유 ID를 생성합니다."""
-    return hashlib.md5(text.encode("utf-8")).hexdigest()
 
 async def fetch_news_by_query(query: str) -> List[NewsArticle]:
     """

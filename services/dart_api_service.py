@@ -1,6 +1,7 @@
 import requests as rq
 import pandas as pd
 from core.config import DART_API
+from utils.utils import clean, normalize, calculate_ratios
 
 def fetch_and_process_financials(code: str) -> dict:
     """DART API로 재무 정보를 가져오고 Pandas로 가공합니다."""
@@ -28,22 +29,7 @@ def fetch_and_process_financials(code: str) -> dict:
         df["account_nm"].apply(lambda x: any(k in x for k in keywords))
     ]
 
-    def clean(val):
-        if not isinstance(val, str):
-            return None
-        text = val.strip()
-        if not text or text == "-":
-            return None
-        num_str = text.replace(",", "")
-        try:
-            return int(num_str)
-        except ValueError:
-            return None
-
     result = {"2022": {}, "2023": {}, "2024": {}}
-
-    def normalize(name):
-        return name.split("(")[0].strip()
 
     for _, row in df_filtered.iterrows():
         account = normalize(row["account_nm"])
@@ -51,21 +37,8 @@ def fetch_and_process_financials(code: str) -> dict:
         result["2023"][account] = clean(row.get("frmtrm_amount"))
         result["2024"][account] = clean(row.get("thstrm_amount"))
 
-    def calculate_ratios(year):
-        res = result[year]
-        sales = res.get("매출액")
-        op = res.get("영업이익")
-        net = res.get("당기순이익")
-        equity = res.get("자본총계")
-        ratios = {}
-        if sales and sales != 0:
-            ratios["영업이익률"] = round(op / sales * 100, 2) if op else None
-            ratios["순이익률"] = round(net / sales * 100, 2) if net else None
-        if equity and equity != 0:
-            ratios["ROE"] = round(net / equity * 100, 2) if net else None
-        return ratios
 
     for year in ["2022", "2023", "2024"]:
-        result[year]["ratio"] = calculate_ratios(year)
+        result[year]["ratio"] = calculate_ratios(result[year])
 
     return result
