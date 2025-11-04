@@ -22,3 +22,5 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 LOGO_PUBLISHABLE_KEY = os.getenv("LOGO_PUBLISHABLE_KEY") or ""
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")

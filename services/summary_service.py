@@ -69,9 +69,8 @@ async def generate_and_save_summary(
 
     # 5) Upsert 로직 (Repository 호출)
     if existing:
-        updated = summary_repository.update_summary(
-            db, req.company_name, summary_text
-        )
+        summary_data = SummaryCreate(company_name=req.company_name, summary_text=summary_text)
+        updated = summary_repository.update_summary(db, summary_data)
         return updated
     else:
         return summary_repository.create_summary(db, summary_data)
