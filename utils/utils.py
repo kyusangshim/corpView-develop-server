@@ -24,6 +24,29 @@ def _format_news(articles: List[NewsArticle]) -> str:
     )
 
 
+# ... (다른 임포트들) ...
+from datetime import datetime # 1. datetime 임포트
+from email.utils import parsedate_to_datetime # 2. RFC 2822 형식 파싱용 임포트
+
+def _format_news_for_groq(articles: List[NewsArticle]) -> str:
+    """Groq API에 보낼 뉴스 텍스트를 포맷합니다. (날짜 파싱 추가)"""
+    lines = []
+    for a in articles:
+        try:
+            # 1. Naver API의 날짜 문자열(str)을 datetime 객체로 파싱합니다.
+            # 예: "Mon, 03 Nov 2025 11:07:00 +0900" -> datetime 객체
+            dt = parsedate_to_datetime(a.pubDate)
+            
+            # 2. 원하는 형식으로 다시 문자열로 포맷합니다.
+            formatted_date = dt.strftime('%Y-%m-%d %H:%M')
+        except Exception:
+            # 3. 파싱에 실패할 경우 (예외 처리) 원본 문자열을 그대로 사용합니다.
+            formatted_date = a.pubDate 
+            
+        lines.append(f"{a.title} ({formatted_date}) - {a.link}")
+    return "\n".join(lines)
+
+
 # news 헬퍼 함수
 def _make_id(text: str) -> str:
     """링크 텍스트로 고유 ID를 생성합니다."""

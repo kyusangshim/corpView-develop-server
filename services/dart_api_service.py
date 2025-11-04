@@ -1,14 +1,23 @@
-import requests as rq
+# import requests as rq -> 삭제
+import httpx # <-- 1. httpx 임포트
 import pandas as pd
 from core.config import DART_API
 from utils.utils import clean, normalize, calculate_ratios
 
-def fetch_and_process_financials(code: str) -> dict:
-    """DART API로 재무 정보를 가져오고 Pandas로 가공합니다."""
+async def fetch_and_process_financials(code: str) -> dict:
+    """DART API로 재무 정보를 (비동기로) 가져오고 Pandas로 가공합니다."""
     code = "00" + code if len(code) == 6 else code
     url = f"https://opendart.fss.or.kr/api/fnlttSinglAcnt.json?crtfc_key={DART_API}&corp_code={code}&bsns_year=2024&reprt_code=11011"
-    response = rq.get(url)
-    data = response.json()
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url)
+            response.raise_for_status() # HTTP 오류 체크
+            data = response.json()
+        except httpx.HTTPStatusError as e:
+            return {"message": f"DART API 오류: {e.response.status_code}"}
+        except Exception as e:
+            return {"message": f"DART API 호출 중 오류: {str(e)}"}
 
     if "list" not in data:
         return {"message": "데이터가 없습니다."}
