@@ -1,6 +1,6 @@
 from core.config import SECRET_KEY
 from fastapi import FastAPI, Request, Response
-from routers import auth, details_all_caching, details_no_caching, details_partial_caching, naver_news, users, dart, summary, companies, industries
+from routers import auth, details_all, users, companies, industries
 from core.database import Base, engine
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,11 +38,6 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
-app.include_router(dart.router, prefix="/darts", tags=["Darts"])
-app.include_router(naver_news.router, prefix="/naver", tags=["Naver News"])
-app.include_router(summary.router, prefix="/summary", tags=["Summary"])
 app.include_router(companies.router, prefix="/companies", tags=["Companies"])
 app.include_router(industries.router, prefix="/industries", tags=["Industries"])
-app.include_router(details_no_caching.router, prefix="/details", tags=["Company Details (BFF)"])
-app.include_router(details_all_caching.router, prefix="/details-redis", tags=["Company Details (Cache-Aside)"])
-app.include_router(details_partial_caching.router, prefix="/details-final", tags=["Company Details (Final)"])
+app.include_router(details_all.router, prefix="/details-final", tags=["Company Details (Final)"])

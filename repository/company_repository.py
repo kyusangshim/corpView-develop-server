@@ -15,6 +15,35 @@ def get_company_by_code(db: Session, corp_code: int) -> CompanyOverviews | None:
     # PK 조회의 경우 .get()이 더 효율적입니다.
     return db.query(CompanyOverviews).get(corp_code) 
 
+
+def atomic_add_favorite_count(db: Session, corp_code: int) -> int:
+    """'좋아요' 수를 원자적으로 증가시켜, Race Condition 방지합니다."""
+    result = (
+        db.query(CompanyOverviews)
+        .filter(CompanyOverviews.corp_code == corp_code)
+        .update(
+            {"favorite_count": CompanyOverviews.favorite_count + 1},
+            synchronize_session=False
+        )
+    )
+    return result
+
+def atomic_subtract_favorite_count(db: Session, corp_code: int) -> int:
+    """'좋아요' 수를 원자적으로 감소시켜, Race Condition 방지합니다."""
+    result = (
+        db.query(CompanyOverviews)
+        .filter(
+            CompanyOverviews.corp_code == corp_code,
+            CompanyOverviews.favorite_count > 0 
+        )
+        .update(
+            {"favorite_count": CompanyOverviews.favorite_count - 1},
+            synchronize_session=False
+        )
+    )
+    return result
+
+
 def search_companies_by_keyword(db: Session, keyword: str) -> list[CompanyOverviews]:
     """키워드(ilike)로 여러 회사를 검색합니다."""
     return (

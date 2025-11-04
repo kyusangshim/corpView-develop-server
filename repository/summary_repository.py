@@ -27,8 +27,6 @@ def update_summary(db: Session, data: SummaryCreate) -> Summary:
     if not db_obj:
         return None
     db_obj.summary_text = data.summary_text
-    # 필요시 updated_at 필드를 모델에 추가하고 아래처럼 갱신
-    # db_obj.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(db_obj)
     return db_obj

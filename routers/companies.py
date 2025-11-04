@@ -5,7 +5,6 @@ from repository import company_repository
 from services import company_service
 from typing import List
 from schemas.company import (
-    CompanyInfo,
     CompanySearchResult,
     BestCompanyResult,
     CompanyByIndustry,
@@ -13,14 +12,6 @@ from schemas.company import (
 )
 
 router = APIRouter()
-
-"""(DB) 이름으로 정확히 1개의 회사 개황 정보를 조회합니다."""
-@router.get("/info", response_model=CompanyInfo)
-def get_company_info(name: str, db: Session = Depends(get_db)):
-    result = company_repository.get_company_by_name_exact(db, name)
-    if result is None:
-        raise HTTPException(status_code=404, detail="해당 회사명을 찾을 수 없습니다.")
-    return result
 
 
 """(DB) 키워드로 회사를 검색합니다."""
