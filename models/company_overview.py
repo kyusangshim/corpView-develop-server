@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Text, TIMESTAMP, Integer
+from sqlalchemy import Column, Text, Integer
 from sqlalchemy.dialects.mysql import VARCHAR
 from core.database import Base
+from sqlalchemy.orm import relationship
 
 
 class CompanyOverviews(Base):
@@ -21,4 +22,17 @@ class CompanyOverviews(Base):
     @property
     def category(self) -> str:
         return self.induty_name
+    
+
+    financials = relationship(
+        "FinancialStatement", 
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
+    
+    news = relationship(
+        "CachedNewsArticle", 
+        back_populates="company",
+        cascade="all, delete-orphan" 
+    )
 
