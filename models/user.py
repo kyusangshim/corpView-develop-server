@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, JSON, DateTime, UniqueConstraint
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship
-from database import Base
+from core.database import Base
 from datetime import datetime
 import pytz
 
@@ -25,8 +25,7 @@ class User(Base):
 
     preferences    = Column(MutableList.as_mutable(JSON), default=list, nullable=False)
     favorites      = Column(MutableList.as_mutable(JSON), default=list, nullable=False)
-    favorites_industries = relationship("UserIndustryFavorite", back_populates="user")
-
+    
     # 생성 시각 (한국 시각)
     created_at = Column(
         DateTime(timezone=True),

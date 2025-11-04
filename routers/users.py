@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from database import get_db
+from core.database import get_db
 from models.user import User as UserModel
 from schemas.user import PreferencesUpdate, FavoriteCreate, UserOut
-from routers.auth import get_current_user
+from services.auth_service import get_current_user
 
 router = APIRouter(tags=["Users"])
 

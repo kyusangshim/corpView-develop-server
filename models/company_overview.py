@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Text, TIMESTAMP, Integer
 from sqlalchemy.dialects.mysql import VARCHAR
-from database import Base
+from core.database import Base
 
 
 class CompanyOverviews(Base):
@@ -17,3 +17,8 @@ class CompanyOverviews(Base):
     est_dt = Column(VARCHAR(8))
     favorite_count = Column(Integer, default=0)
     logo = Column(VARCHAR(2048), default="", nullable=False)
+
+    @property
+    def category(self) -> str:
+        return self.induty_name
+
