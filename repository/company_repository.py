@@ -63,10 +63,8 @@ def get_best_companies(db: Session, limit: int = 3) -> list[CompanyOverviews]:
     )
 
 def get_companies_by_industry_code(db: Session, industry_code: int) -> list[CompanyOverviews]:
-    """산업 코드로 회사 목록을 랜덤하게 조회합니다."""
     return (
         db.query(CompanyOverviews)
         .filter(CompanyOverviews.induty_code.like(f"{industry_code}%"))
-        .order_by(func.rand())
         .all()
     )
