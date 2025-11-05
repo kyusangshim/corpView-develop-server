@@ -1,10 +1,13 @@
 
-from typing import Dict, List
+from typing import Dict, List, Any
 import hashlib
 from schemas.summary import (
     NewsArticle,
     RawFinancialEntry,
 )
+from models.financial_statement import FinancialStatement
+from models.cached_news_article import CachedNewsArticle
+
 
 
 # summary 헬퍼 함수
@@ -83,3 +86,32 @@ def calculate_ratios(res):
     if equity and equity != 0:
         ratios["ROE"] = round(net / equity * 100, 2) if net else None
     return ratios
+
+
+
+# financials & news 헬퍼함수
+def _format_financials_from_orm(orm_list: List[FinancialStatement]) -> Dict[str, Any]:
+    result = {}
+    for item in orm_list:
+        result[str(item.year)] = {
+            "매출액": item.revenue,
+            "영업이익": item.operating_profit,
+            "당기순이익": item.net_income,
+            "자산총계": item.total_assets,
+            "자본총계": item.total_equity,
+            "ratio": item.ratios,
+        }
+    return result
+
+def _format_news_from_orm(orm_list: List[CachedNewsArticle]) -> Dict[str, List[Dict]]:
+    result = {}
+    for item in orm_list:
+        if item.category not in result:
+            result[item.category] = []
+        result[item.category].append({
+            "id": _make_id(item.link), # (naver_service의 _make_id 임포트 필요)
+            "title": item.title,
+            "link": item.link,
+            "pubDate": item.pub_date.isoformat(),
+        })
+    return result
