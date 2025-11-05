@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, BigInteger, JSON, 
+    Column, Integer, VARCHAR, BigInteger, JSON, 
     ForeignKey, UniqueConstraint
 )
 from sqlalchemy.orm import relationship
@@ -8,12 +8,12 @@ from core.database import Base
 class FinancialStatement(Base):
     __tablename__ = "financial_statements"
     __table_args__ = (
-        UniqueConstraint("company_code", "year", name="uq_company_year"),
-        {"mysql_charset": "utf8mb4"}
+        UniqueConstraint("corp_code", "year", name="uq_company_year"),
+        {"mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_unicode_ci"}
     )
     
     id = Column(Integer, primary_key=True)
-    company_code = Column(Integer, ForeignKey("company_overview.corp_code"), nullable=False, index=True)
+    corp_code = Column(VARCHAR(8), ForeignKey("company_overview.corp_code"), nullable=False, index=True)
     
     # 2022, 2023, 2024...
     year = Column(Integer, nullable=False, index=True) 

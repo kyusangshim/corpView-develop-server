@@ -4,6 +4,7 @@ from routers import auth, details_all, users, companies, industries
 from core.database import Base, engine
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
+import models
 
 app = FastAPI()
 

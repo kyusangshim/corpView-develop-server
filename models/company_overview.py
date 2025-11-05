@@ -6,7 +6,10 @@ from sqlalchemy.orm import relationship
 
 class CompanyOverviews(Base):
     __tablename__ = "company_overview"
-    __table_args__ = {"mysql_charset": "utf8", "mysql_collate": "utf8_general_ci"}
+    __table_args__ = {
+        "mysql_charset": "utf8mb4",
+        "mysql_collate": "utf8mb4_unicode_ci"
+    }
 
     corp_code = Column(VARCHAR(8), primary_key=True)
     corp_name = Column(VARCHAR(255))
