@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from repository import financials_repository
 from clients import dart_api_client
 from utils.utils import clean, normalize, calculate_ratios, _format_financials_from_orm
+from core.database import SessionLocal
+from fastapi.logger import logger
 
 FINANCIALS_TTL = 86400  # 24시간
 
@@ -13,6 +15,18 @@ class FinancialService:
     def __init__(self, redis_client: redis.Redis, SessionLocal):
         self.redis = redis_client
         self.SessionLocal = SessionLocal
+
+    async def _save_to_l2_background(self, corp_code: str, data: dict):
+        """(Helper) L2 저장을 별도 스레드와 세션에서 'Fire and Forget'으로 실행"""
+        db: Session = SessionLocal() # 3. 이 작업을 위한 새 세션 생성
+        try:
+            await asyncio.to_thread(financials_repository.upsert_financials, db, corp_code, data)
+            await asyncio.to_thread(db.commit) # 4. 작업 단위 커밋
+        except Exception as e:
+            await asyncio.to_thread(db.rollback)
+        finally:
+            await asyncio.to_thread(db.close) # 5. 세션 닫기
+
 
     async def get_financials(self, corp_code: str):
         """(Worker) 재무 정보의 L1 -> L2 -> L3 캐싱 로직을 담당"""
@@ -23,7 +37,7 @@ class FinancialService:
         if cached:
             return json.loads(cached)
 
-        db = self.SessionLocal()
+        db = SessionLocal()
 
         try:
             # 2. (L2) RDB 조회
@@ -42,8 +56,11 @@ class FinancialService:
             if "fs_div" not in df.columns:
                 return {"message": "'fs_div' 정보가 없습니다."}
 
-            df = df[df["fs_div"].isin(["CFS", "OFS"])]
-            if df.empty:
+            if (df["fs_div"] == "CFS").any():
+                df = df[df["fs_div"] == "CFS"]
+            elif (df["fs_div"] == "OFS").any():
+                df = df[df["fs_div"] == "OFS"]
+            else:
                 return {"message": "CFS/OFS 기준 데이터가 없습니다."}
 
             keywords = ["매출액", "영업이익", "당기순이익", "자본총계", "자산총계"]
@@ -59,15 +76,17 @@ class FinancialService:
             for year in result:
                 result[year]["ratio"] = calculate_ratios(result[year])
 
-            # L2 저장
-            await asyncio.to_thread(financials_repository.upsert_financials, db, corp_code, result)
-            await asyncio.to_thread(db.commit)
-
+            
             await self.redis.set(key, json.dumps(result), ex=FINANCIALS_TTL)
+
+            # L2 저장
+            # [수정] L2 저장은 "백그라운드"로 실행 (Fire and Forget)
+            asyncio.create_task(self._save_to_l2_background(corp_code, result))
+
             return result
 
         except Exception as e:
             await asyncio.to_thread(db.rollback)
-            raise e
+            return {}
         finally:
             await asyncio.to_thread(db.close)

@@ -9,8 +9,7 @@ import redis.asyncio as redis
 from typing import Dict, List, Any
 from core.database import SessionLocal
 
-# 1. 의존성 변경: 개별 리포지토리/클라이언트 대신 "작업자 서비스" 임포트
-from repository import company_repository # (회사 개황은 여기서 직접 처리)
+from repository import company_repository 
 from services.financial_service import FinancialService
 from services.news_service import NewsService
 from services.summary_service import SummaryService
@@ -26,13 +25,8 @@ async def get_company_details(
     db: Session,
     redis_client: redis.Redis
 ) -> CompanyDetailResponse:
-    """
-    (Orchestrator) '기업 상세'에 필요한 모든 서비스를 지휘하고
-    최종 DB Commit을 담당합니다.
-    """
     
     # --- 1. 회사 개황 정보 (Info) ---
-    # (이 로직은 단순하므로 여기에 둬도 무방합니다.)
     info_key = f"details:info:{name}"
     company_info: CompanyInfo = None
     try:
@@ -54,12 +48,10 @@ async def get_company_details(
     corp_code = str(company_info.corp_code) 
 
     # --- 2 & 3. 재무 및 뉴스 정보 (병렬 호출) ---
-    # 각 서비스에 redis_client와 db 세션을 주입하여 생성
     fin_service = FinancialService(redis_client, SessionLocal)
     news_service = NewsService(redis_client, SessionLocal)
     
     try:
-        # 'gather'로 "작업자" 서비스들을 병렬 실행
         results = await asyncio.gather(
             fin_service.get_financials(corp_code),
             news_service.get_news(name, corp_code)
@@ -72,17 +64,14 @@ async def get_company_details(
 
 
     # --- 4. AI 요약 (순차 호출) ---
-    # (재무/뉴스 데이터를 재료로 사용)
-    # summary_service = SummaryService(redis_client, SessionLocal)
-    # try:
-    #     ai_summary_text = await summary_service.get_summary(
-    #         name, raw_financial_data, raw_news_data
-    #     )
-    # except Exception as e:
-    #     await asyncio.to_thread(db.rollback)
-    #     raise HTTPException(status_code=500, detail=f"AI 요약 처리 오류: {e}")
-
-    ai_summary_text = "더미데이터입니다."
+    summary_service = SummaryService(redis_client, SessionLocal)
+    try:
+        ai_summary_text = await summary_service.get_summary(
+            name, raw_financial_data, raw_news_data
+        )
+    except Exception as e:
+        await asyncio.to_thread(db.rollback)
+        raise HTTPException(status_code=500, detail=f"AI 요약 처리 오류: {e}")
 
     # --- 5. 최종 조합 및 반환 ---
     try:
