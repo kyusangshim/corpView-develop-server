@@ -1,4 +1,4 @@
-# /services/details_service.py
+# /services/details_service.py (최종 수정)
 
 import asyncio 
 import json
@@ -7,28 +7,32 @@ from fastapi.logger import logger
 from sqlalchemy.orm import Session
 import redis.asyncio as redis
 from typing import Dict, List, Any
+from core.database import SessionLocal
 
-from repository import company_repository, summary_repository
-from services import dart_api_service, news_service, groq_service
+# 1. 의존성 변경: 개별 리포지토리/클라이언트 대신 "작업자 서비스" 임포트
+from repository import company_repository # (회사 개황은 여기서 직접 처리)
+from services.financial_service import FinancialService
+from services.news_service import NewsService
+from services.summary_service import SummaryService
 from schemas.company import CompanyInfo
-from schemas.news import NewsArticle
-from schemas.summary import RawFinancialEntry, SummaryCreate
 from schemas.details import CompanyDetailResponse 
-from utils.utils import _format_financial, _format_news_for_groq # 헬퍼 함수
+from schemas.summary import RawFinancialEntry
+from schemas.news import NewsArticle
 
-INFO_TTL = 86400       # 24시간 (회사 개황)
-FINANCIALS_TTL = 86400 # 24시간 (재무)
-NEWS_TTL = 600         # 10분 (뉴스)
-SUMMARY_TTL = 600      # 10분 (AI 요약 - Redis L1 전용)
-
+INFO_TTL = 86400
 
 async def get_company_details(
     name: str, 
     db: Session,
     redis_client: redis.Redis
 ) -> CompanyDetailResponse:
-
+    """
+    (Orchestrator) '기업 상세'에 필요한 모든 서비스를 지휘하고
+    최종 DB Commit을 담당합니다.
+    """
+    
     # --- 1. 회사 개황 정보 (Info) ---
+    # (이 로직은 단순하므로 여기에 둬도 무방합니다.)
     info_key = f"details:info:{name}"
     company_info: CompanyInfo = None
     try:
@@ -44,89 +48,41 @@ async def get_company_details(
             company_info = CompanyInfo.from_orm(company_info_orm)
             await redis_client.set(info_key, company_info.json(), ex=INFO_TTL)
     except Exception as e:
-        raise HTTPException(status_code=500, detail="회사 정보 조회 중 오류 발생")
+        await asyncio.to_thread(db.rollback)
+        raise HTTPException(status_code=500, detail=f"회사 정보 조회 중 오류: {e}")
     
     corp_code = str(company_info.corp_code) 
 
     # --- 2 & 3. 재무 및 뉴스 정보 (병렬 호출) ---
-    financials_key = f"details:financials:{corp_code}"
-    news_key = f"details:news:{name}"
-
-    try:
-        # 2. 재무 정보 (L1 -> L3)
-        async def fetch_financials():
-            cached_financials = await redis_client.get(financials_key)
-            if cached_financials:
-                return json.loads(cached_financials)
-            
-            raw_data = await dart_api_service.fetch_and_process_financials(corp_code)
-            await redis_client.set(financials_key, json.dumps(raw_data), ex=FINANCIALS_TTL)
-            return raw_data
-
-        # 3. 뉴스 정보 (L1 -> L3)
-        async def fetch_news():
-            cached_news = await redis_client.get(news_key)
-            if cached_news:
-                return json.loads(cached_news)
-            
-            news_pydantic_models = await news_service.fetch_all_news_by_category(name)
-            raw_data = {k: [a.dict() for a in v] for k, v in news_pydantic_models.items()}
-            await redis_client.set(news_key, json.dumps(raw_data), ex=NEWS_TTL)
-            return raw_data
-
-        results = await asyncio.gather(fetch_financials(), fetch_news())
-        raw_financial_data: Dict[str, Any] = results[0]
-        raw_news_data: Dict[str, List[Dict]] = results[1]
-        
-    except Exception as e:
-        raw_financial_data, raw_news_data = {}, {}
-
-
-    # --- 4. AI 요약 (L1 -> L3 -> L2 Fallback) ---
-    summary_key = f"details:summary:{name}"
-    ai_summary_text: str = None
+    # 각 서비스에 redis_client와 db 세션을 주입하여 생성
+    fin_service = FinancialService(redis_client, SessionLocal)
+    news_service = NewsService(redis_client, SessionLocal)
     
     try:
-        cached_summary = await redis_client.get(summary_key)
-        if cached_summary:
-            ai_summary_text = cached_summary
+        # 'gather'로 "작업자" 서비스들을 병렬 실행
+        results = await asyncio.gather(
+            fin_service.get_financials(corp_code),
+            news_service.get_news(name, corp_code)
+        )
+        raw_financial_data: Dict[str, Any] = results[0]
+        raw_news_data: Dict[str, List[Dict]] = results[1]
     except Exception as e:
-        logger.error(f"Redis GET 오류 (Summary): {e}")
+        await asyncio.to_thread(db.rollback)
+        raise HTTPException(status_code=500, detail=f"재무/뉴스 처리 오류: {e}")
 
-    if not ai_summary_text:
-        try:
-            validated_financial_data = {k: RawFinancialEntry.parse_obj(v) for k, v in raw_financial_data.items() if isinstance(v, dict) and all(k in v for k in ["자본총계", "매출액"])}
-            채용_news_list: List[NewsArticle] = []
-            if isinstance(raw_news_data, dict):
-                for category, articles in raw_news_data.items():
-                    if category == "채용":
-                        채용_news_list = [NewsArticle.parse_obj(a) for a in articles]
-                        break
 
-            has_fin = bool(validated_financial_data)
-            has_news = bool(채용_news_list)
-            
-            if not has_fin and not has_news:
-                ai_summary_text = "AI요약을 생성하기 위한 정보를 찾을 수 없습니다."
-            else:
-                fin_text = _format_financial(validated_financial_data) if has_fin else "재무정보 없음"
-                news_text = _format_news_for_groq(채용_news_list) if has_news else "채용뉴스 없음"
-                ai_summary_text = await groq_service.summarize(name, fin_text, news_text)
-            
-            # (AI Success) L2(RDB) & L1(Redis) 저장
-            try:
-                summary_data = SummaryCreate(company_name=name, summary_text=ai_summary_text)
-                await asyncio.to_thread(summary_repository.update_summary, db, summary_data)
-                await redis_client.set(summary_key, ai_summary_text, ex=SUMMARY_TTL)
-            except Exception as e:
-                logger.error(f"Cache SET 오류 (Origin->L1/L2): {e}")
-                
-        except Exception as e:
-            rdb_summary = await asyncio.to_thread(summary_repository.get_recent_summary, db, name)
-            if rdb_summary:
-                ai_summary_text = rdb_summary.summary_text
-            else:
-                ai_summary_text = "AI 요약 생성에 실패했으며, 저장된 정보도 없습니다."
+    # --- 4. AI 요약 (순차 호출) ---
+    # (재무/뉴스 데이터를 재료로 사용)
+    # summary_service = SummaryService(redis_client, SessionLocal)
+    # try:
+    #     ai_summary_text = await summary_service.get_summary(
+    #         name, raw_financial_data, raw_news_data
+    #     )
+    # except Exception as e:
+    #     await asyncio.to_thread(db.rollback)
+    #     raise HTTPException(status_code=500, detail=f"AI 요약 처리 오류: {e}")
+
+    ai_summary_text = "더미데이터입니다."
 
     # --- 5. 최종 조합 및 반환 ---
     try:

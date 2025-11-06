@@ -6,6 +6,8 @@ from typing import Dict, Any, List
 
 def get_financials_by_code(db: Session, corp_code: str) -> List[FinancialStatement]:
     """L2(RDB)에서 특정 회사의 모든 재무제표를 조회합니다."""
+    corp_code = "00" + corp_code if len(corp_code) == 6 else corp_code
+    
     return (
         db.query(FinancialStatement)
         .filter(FinancialStatement.corp_code == corp_code)
@@ -17,6 +19,8 @@ def upsert_financials(db: Session, corp_code: str, financial_data: Dict[str, Any
     """
     L3(DART)에서 가져온 데이터를 L2(RDB)에 Upsert(Update or Insert)합니다.
     """
+    corp_code = "00" + corp_code if len(corp_code) == 6 else corp_code
+    
     for year, data in financial_data.items():
         if not (isinstance(data, dict) and "매출액" in data):
             continue # 유효하지 않은 데이터(예: "message: ...") 스킵

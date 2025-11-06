@@ -23,6 +23,7 @@ def upsert_news_articles(db: Session, corp_code: str, news_data: Dict[str, List[
     L3(Naver)에서 가져온 새 데이터를 L2(RDB)에 덮어씁니다.
     (이전 캐시를 삭제하고 새로 삽입)
     """
+    corp_code = "00" + corp_code if len(corp_code) == 6 else corp_code
     
     # 1. (Delete) L2의 기존 뉴스 캐시를 모두 삭제
     db.query(CachedNewsArticle).filter(CachedNewsArticle.corp_code == corp_code).delete(
