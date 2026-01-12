@@ -29,39 +29,47 @@ FastAPI 기반으로 RESTful API를 제공하며, 기업 재무 데이터 조회
 - **Framework**: FastAPI  
 - **언어**: Python 3.10+  
 - **데이터베이스**: MySQL (SQLAlchemy)
+- **캐시**: Redis
 - **ASGI 서버**: Uvicorn 
-- **인증**: OAuth2 (python-jose)  
+- **인증**: OAuth2 (python-jose)
+- **AI**: Groq AI
 
 ---
 
 ## 프로젝트 구조
 ```
-company-analysis-app-server/
-├── models/                         # 데이터베이스 ORM 모델 정의
+corpView-develop-server/
+├── core/                   # 설정 및 공통 모듈
+│   ├── cache.py            # Redis 캐시 설정
+│   ├── config.py           # 환경 변수 로드
+│   └── database.py         # DB 연결 및 엔진 설정
+├── models/                 # SQLAlchemy ORM 모델 정의
 │   ├── user.py
 │   ├── summary.py
+│   ├── industry_classification.py
 │   └── company_overview.py
-├── routers/                        # API 라우터
-│   ├── auth.py
-│   ├── dart_search.py
-│   ├── dart.py
-│   ├── naver_news.py
-│   ├── summary.py
-│   └── users.py
-├── schemas/                        # 데이터 검증 스키마 정의
+├── repository/             # DB CRUD 로직 (Repository 패턴)
+│   ├── user_repository.py
+│   ├── company_repository.py
+│   └── industry_repository.py
+├── routers/                # API 엔드포인트 라우터
+│   ├── auth.py             # 인증 관련
+│   ├── users.py            # 유저 정보
+│   ├── companies.py        # 기업 정보
+│   ├── industries.py       # 산업군 정보
+│   └── details_all.py      # 기업 상세 분석 (Final)
+├── schemas/                # Pydantic 데이터 검증 스키마
 │   ├── user.py
-│   ├── summary.py
-│   └── token.py
-├── services/                       # 외부 API 및 기타함수 호출
-│   ├── groq_service.py
-│   ├── logo_api.py
-│   └── summary_crud.py
-├── database.py                     # 데이터베이스 연결 및 세션 관리
-├── main.py                         # FastAPI 애플리케이션 설정 및 라우터 등록
-├── requirements.txt                # Python 필요 패키지 라이브러리 목록
-├── .env                            # 환경변수 셋팅
-├── 산업코드.csv                     # 산업코드 분류 CSV
-└── README.md
+│   ├── company.py
+│   ├── details.py
+│   └── summary.py
+├── services/               # 비즈니스 로직 및 외부 API 통신
+│   ├── groq_service.py     # AI 요약 서비스
+│   ├── dart_api_service.py # DART 데이터 연동
+│   └── news_service.py     # 네이버 뉴스 연동
+├── utils/                  # 공통 유틸리티 함수
+├── main.py                 # 앱 초기화 및 라우터 등록
+└── requirements.txt        # 의존성 목록
 ```
 
 ---
@@ -70,7 +78,7 @@ company-analysis-app-server/
 
 ### 1. 저장소 클론
 ```bash
-git clone https://github.com/company-analysis-app/company-analysis-app-server.git
+git clone https://github.com/kyusangshim/corpview-develop-server.git
 cd company-analysis-app-server
 ```
 
@@ -101,27 +109,31 @@ uvicorn app.main:app --reload
 
 프로젝트 루트에 `.env` 파일을 생성하고, 다음 값을 설정하세요:
 ```env
-# 데이터베이스
+# Database
 DATABASE_URL=mysql+pymysql://<user>:<password>@<host>:<port>/<database>
 
-# CORS 허용
+# Security & Session
+SECRET_KEY=<your_secret_key>
 FRONTEND_URL=http://localhost:3000
 
-# 보안
-SECRET_KEY=<your_secret_key>
+# AI (Groq)
+GROQ_API_KEY=<your_api_key>
+GROQ_URL=<api_url>
 
-# OAuth2 (Google)
-GOOGLE_CLIENT_ID=<your_google_client_id>
-GOOGLE_CLIENT_SECRET=<your_google_client_secret>
+# External APIs
+dart_api_key=<your_dart_key>
+NAVER_CLIENT_ID=<your_id>
+NAVER_CLIENT_SECRET=<your_secret>
 
-# 외부 API 키
-DART_API_KEY=<your_dart_api_key>
-NAVER_CLIENT_ID=<your_naver_client_id>
-NAVER_CLIENT_SECRET=<your_naver_client_secret>
-GROQ_API_KEY=<your_groq_api_key>
+# OAuth (Google)
+GOOGLE_CLIENT_ID=<your_id>
+GOOGLE_CLIENT_SECRET=<your_secret>
 
-# 로고 서비스
-LOGO_PUBLISHABLE_KEY=<your_logo_publishable_key>
+# Cache
+REDIS_URL=redis://127.0.0.1:6379/0
+
+# Others
+LOGO_PUBLISHABLE_KEY=<your_key>
 ```
 
 ---
@@ -143,13 +155,12 @@ LOGO_PUBLISHABLE_KEY=<your_logo_publishable_key>
 ---
 
 ## 주요 엔드포인트
-
+main.py에 정의된 주요 라우터 경로는 다음과 같습니다:
 - `/auth`: OAuth 로그인 및 인증
-- `/dart`: 기업 재무정보 검색
-- `/dart_search`: 기업 개황정보 검색
 - `/users`: 유저 정보 관리
-- `/naver`: 기업 뉴스정보 검색
-- `/summary`: 기업 AI요약 데이터 생성
+- `/companies`: 기업 검색 및 목록 조회
+- `/industries`: 산업군 분류 및 추천
+- `/details-final`: 기업별 AI 요약 및 상세 정보 제공
 
 ---
 
@@ -187,8 +198,7 @@ CREATE TABLE summary (
 ---
 
 ## 향후 개발 계획
-- 추가 비즈니스 로직 및 예외 처리 강화  
-- 캐싱(Redis) 도입으로 API 응답 성능 개선  
+- 추가 비즈니스 로직 및 예외 처리 강화   
 - 실시간 알림 푸시 서비스 연동  
 - Kubernetes 기반 무중단 배포 환경 구축 
 
