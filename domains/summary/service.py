@@ -4,8 +4,8 @@ import asyncio
 import redis.asyncio as redis
 from sqlalchemy.orm import Session
 
-from repository import summary_repository
-from services import groq_service
+from domains.summary import repository as summary_repository
+from clients import groq_client
 from schemas.summary import SummaryCreate
 from utils.utils import _format_financial, _format_news
 
@@ -33,7 +33,7 @@ class SummaryService:
             try:
                 fin_text = _format_financial(financial_data)
                 news_text = _format_news(news_data.get("채용", []))
-                ai_summary_text = await groq_service.summarize(name, fin_text, news_text)
+                ai_summary_text = await groq_client.summarize(name, fin_text, news_text)
 
                 summary_data = SummaryCreate(company_name=name, summary_text=ai_summary_text)
                 await asyncio.to_thread(summary_repository.upsert_summary, db, summary_data)

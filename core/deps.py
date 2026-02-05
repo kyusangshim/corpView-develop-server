@@ -9,7 +9,7 @@ from core.cache import get_redis
 
 from services.financial_service import FinancialService
 from services.news_service import NewsService
-from services.summary_service import SummaryService
+from domains.summary.service import SummaryService
 from domains.details.usecase import DetailsUseCase
 
 

@@ -50,6 +50,3 @@ def upsert_summary(db: Session, data: SummaryCreate):
         # (Insert)
         db_obj = Summary(**data.dict())
         db.add(db_obj)
-    
-    # [!] db.commit()을 여기서 호출하지 않습니다.
-    # [!] db.refresh()도 서비스 계층에서 필요시 호출합니다.
