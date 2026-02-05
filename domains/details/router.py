@@ -1,10 +1,8 @@
-# /routers/details_final.py
-
 from fastapi import APIRouter, Query, Depends
 
 from schemas.details import CompanyDetailResponse
 from core.deps import get_details_usecase
-from services.details_usecase import DetailsUseCase
+from domains.details.usecase import DetailsUseCase
 
 router = APIRouter()
 

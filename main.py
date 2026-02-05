@@ -1,6 +1,7 @@
 from core.config import SECRET_KEY
 from fastapi import FastAPI, Request, Response
-from routers import auth, details_all, users, companies, industries
+from routers import auth, users, companies, industries
+from domains.details.router import router as details_router
 from core.database import Base, engine
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
@@ -41,4 +42,4 @@ app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(companies.router, prefix="/companies", tags=["Companies"])
 app.include_router(industries.router, prefix="/industries", tags=["Industries"])
-app.include_router(details_all.router, prefix="/details-final", tags=["Company Details (Final)"])
+app.include_router(details_router, prefix="/details-final", tags=["Company Details (Final)"])

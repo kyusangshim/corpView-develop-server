@@ -10,7 +10,7 @@ from core.cache import get_redis
 from services.financial_service import FinancialService
 from services.news_service import NewsService
 from services.summary_service import SummaryService
-from services.details_usecase import DetailsUseCase
+from domains.details.usecase import DetailsUseCase
 
 
 def get_financial_service(
