@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Request, Depends
 from sqlalchemy.orm import Session
-from core.database import get_db
+from core.db.database import get_db
 from domains.auth.schema import Token
 from domains.users.schema import UserOut
 

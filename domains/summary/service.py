@@ -9,8 +9,8 @@ from clients import groq_client
 from domains.summary.schema import SummaryCreate
 from utils.utils import _format_financial, _format_news
 
-from core.cache_keys import details_summary_key, lock_key
-from core.cached_singleflight import cached_singleflight_str
+from core.Redis.keys import details_summary_key, lock_key
+from core.Redis.singleflight_cached import cached_singleflight_str
 
 SUMMARY_TTL = 600
 

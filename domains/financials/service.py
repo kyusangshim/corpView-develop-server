@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 
 from clients import dart_api_client
 from utils.utils import clean, normalize, calculate_ratios, _format_financials_from_orm
-from core.cache_keys import details_financials_key
-from core.db_background import fire_and_forget_db
+from core.Redis.keys import details_financials_key
+from core.db.db_background import fire_and_forget_db
 
 from domains.financials import repository as financials_repository
 

@@ -3,7 +3,7 @@ from sqlalchemy import (
     ForeignKey, UniqueConstraint
 )
 from sqlalchemy.orm import relationship
-from core.database import Base
+from core.db.database import Base
 
 class FinancialStatement(Base):
     __tablename__ = "financial_statements"

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, UniqueConstraint
 from datetime import datetime
 import pytz
-from core.database import Base
+from core.db.database import Base
 
 SEOUL_TZ = pytz.timezone("Asia/Seoul")
 

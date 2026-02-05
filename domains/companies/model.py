@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Text, Integer
 from sqlalchemy.dialects.mysql import VARCHAR
-from core.database import Base
+from core.db.database import Base
 from sqlalchemy.orm import relationship
 
 

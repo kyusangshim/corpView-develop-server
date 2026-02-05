@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 import jwt, uuid
 from starlette.responses import RedirectResponse
 
-from core.database import get_db
+from core.db.database import get_db
 from core.config import SECRET_KEY, FRONTEND_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 from domains.users import repository as user_repository
 from domains.users.model import User

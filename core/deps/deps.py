@@ -4,8 +4,8 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 import redis.asyncio as redis
 
-from core.database import get_db, SessionLocal
-from core.cache import get_redis
+from core.db.database import get_db, SessionLocal
+from core.Redis.redis import get_redis
 
 from domains.financials.service import FinancialService
 from domains.news.service import NewsService

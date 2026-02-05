@@ -13,7 +13,7 @@ from domains.details.schema import CompanyDetailResponse
 from domains.summary.schema import RawFinancialEntry
 from domains.news.schema import NewsArticle
 
-from core.cache_keys import details_info_key
+from core.Redis.keys import details_info_key
 
 INFO_TTL = 86400
 

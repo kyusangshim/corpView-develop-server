@@ -3,7 +3,7 @@
 import json
 from typing import Awaitable, Callable, Optional
 
-from core.redis_lock import singleflight
+from core.Redis.singleflight import singleflight
 
 USE_DISTRIBUTED_LOCK = True
 
@@ -54,8 +54,6 @@ async def cached_singleflight_str(
         poll_interval=poll_interval,
         fallback=fallback,
     )
-    # fallback로 얻은 값도 캐시에 올려두기
-    await cache_set(result)
     return result
 
 
@@ -107,6 +105,4 @@ async def cached_singleflight_json(
         poll_interval=poll_interval,
         fallback=fallback,
     )
-    # fallback로 얻은 값도 캐시에 올려두기
-    await cache_set(result)
     return result

@@ -7,7 +7,7 @@ from domains.industries.router import router as industries_router
 from domains.auth.router import router as auth_router
 from domains.users.router import router as user_router
 
-from core.database import Base, engine
+from core.db.database import Base, engine
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from core.database import get_db
+from core.db.database import get_db
 from domains.users.model import User as UserModel
 from domains.users.schema import PreferencesUpdate, FavoriteCreate, UserOut
 from domains.auth.service import get_current_user

@@ -1,6 +1,6 @@
 from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
-from core.database import get_db
+from core.db.database import get_db
 from domains.companies import repository as company_repository
 from domains.companies import service as company_service
 from typing import List

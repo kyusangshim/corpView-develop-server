@@ -6,11 +6,11 @@ import redis.asyncio as redis
 
 from clients import naver_news_client
 from utils.utils import _format_news_from_orm
-from core.database import SessionLocal
+from core.db.database import SessionLocal
 
-from core.cache_keys import details_news_key, lock_key
-from core.cached_singleflight import cached_singleflight_json
-from core.db_background import fire_and_forget_db
+from core.Redis.keys import details_news_key, lock_key
+from core.Redis.singleflight_cached import cached_singleflight_json
+from core.db.db_background import fire_and_forget_db
 
 from domains.news import repository as news_repository
 
