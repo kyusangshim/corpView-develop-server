@@ -2,9 +2,9 @@
 
 from pydantic import BaseModel
 from typing import Dict
-from schemas.company import CompanyInfo
-from schemas.news import AllNewsResponse
-from schemas.summary import RawFinancialEntry
+from domains.companies.schema import CompanyInfo
+from domains.news.schema import AllNewsResponse
+from domains.summary.schema import RawFinancialEntry
 
 class CompanyDetailResponse(BaseModel):
     """

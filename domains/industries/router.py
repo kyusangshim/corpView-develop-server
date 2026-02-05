@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from domains.industries import repository as industry_repository
 from domains.users import repository as user_repository
-from schemas.user import IndustryCategoryNode # 스키마를 사용하셨네요. 좋습니다.
+from domains.users.schema import IndustryCategoryNode # 스키마를 사용하셨네요. 좋습니다.
 from typing import List
 
 router = APIRouter()

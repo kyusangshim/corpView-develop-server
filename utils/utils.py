@@ -1,7 +1,7 @@
 
 from typing import Dict, List, Any
 import hashlib
-from schemas.summary import (
+from domains.summary.schema import (
     NewsArticle,
     RawFinancialEntry,
 )

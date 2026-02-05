@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from typing import List, Dict
 
 from core.config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
-from schemas.news import NewsArticle # 스키마는 재사용
+from domains.news.schema import NewsArticle # 스키마는 재사용
 from utils.utils import _make_id
 
 async def fetch_news_by_query(query: str) -> List[NewsArticle]:

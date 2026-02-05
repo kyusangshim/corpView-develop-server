@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import Session
 from models.cached_news_article import CachedNewsArticle
-from schemas.news import NewsArticle # Pydantic 스키마
+from domains.news.schema import NewsArticle # Pydantic 스키마
 from typing import Dict, Any, List
 from datetime import datetime
 import pytz

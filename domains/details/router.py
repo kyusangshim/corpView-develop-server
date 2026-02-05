@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, Depends
 
-from schemas.details import CompanyDetailResponse
+from domains.details.schema import CompanyDetailResponse
 from core.deps import get_details_usecase
 from domains.details.usecase import DetailsUseCase
 

@@ -8,10 +8,10 @@ from domains.financials.service import FinancialService
 from domains.news.service import NewsService
 from domains.summary.service import SummaryService
 
-from schemas.company import CompanyInfo
-from schemas.details import CompanyDetailResponse
-from schemas.summary import RawFinancialEntry
-from schemas.news import NewsArticle
+from domains.companies.schema import CompanyInfo
+from domains.details.schema import CompanyDetailResponse
+from domains.summary.schema import RawFinancialEntry
+from domains.news.schema import NewsArticle
 
 from core.cache_keys import details_info_key
 

@@ -3,8 +3,9 @@
 from fastapi import APIRouter, Request, Depends
 from sqlalchemy.orm import Session
 from core.database import get_db
-from schemas.token import Token
-from schemas.user import UserOut
+from domains.auth.schema import Token
+from domains.users.schema import UserOut
+
 from models.user import User
 from domains.auth.service import (
     oauth, 

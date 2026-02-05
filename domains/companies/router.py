@@ -4,7 +4,7 @@ from core.database import get_db
 from domains.companies import repository as company_repository
 from domains.companies import service as company_service
 from typing import List
-from schemas.company import (
+from domains.companies.schema import (
     CompanySearchResult,
     BestCompanyResult,
     CompanyByIndustry,

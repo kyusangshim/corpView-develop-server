@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from core.database import get_db
 from models.user import User as UserModel
-from schemas.user import PreferencesUpdate, FavoriteCreate, UserOut
+from domains.users.schema import PreferencesUpdate, FavoriteCreate, UserOut
 from domains.auth.service import get_current_user
 
 router = APIRouter(tags=["Users"])

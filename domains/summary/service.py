@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from domains.summary import repository as summary_repository
 from clients import groq_client
-from schemas.summary import SummaryCreate
+from domains.summary.schema import SummaryCreate
 from utils.utils import _format_financial, _format_news
 
 from core.cache_keys import details_summary_key, lock_key

@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import Session
 from models.summary import Summary
-from schemas.summary import SummaryCreate
+from domains.summary.schema import SummaryCreate
 from datetime import datetime
 import pytz
 
