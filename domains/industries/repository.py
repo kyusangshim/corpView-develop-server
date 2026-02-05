@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.industry_classification import IndustryClassification
+from domains.industries.model import IndustryClassification
 from typing import List
 
 def get_industry_code_by_name_and_level(db: Session, name: str, level: int) -> str | None:

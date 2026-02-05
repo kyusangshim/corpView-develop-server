@@ -1,7 +1,7 @@
 # services/summary_crud.py
 
 from sqlalchemy.orm import Session
-from models.summary import Summary
+from domains.summary.model import Summary
 from domains.summary.schema import SummaryCreate
 from datetime import datetime
 import pytz

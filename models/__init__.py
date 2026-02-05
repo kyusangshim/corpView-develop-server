@@ -1,11 +1,7 @@
-# /models/__init__.py
-
-from core.database import Base
-
-from .user import User
-from .company_overview import CompanyOverviews
-from .financial_statement import FinancialStatement
-from .cached_news_article import CachedNewsArticle
-from .industry_classification import IndustryClassification
-from .summary import Summary
-from .user_industry_favorite import UserIndustryFavorite
+# models/__init__.py (브릿지)
+from domains.companies.model import *
+from domains.financials.model import *
+from domains.news.model import *
+from domains.summary.model import *
+from domains.users.model import *
+from domains.industries.model import *

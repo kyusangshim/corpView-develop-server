@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
-from models.company_overview import CompanyOverviews
+from domains.companies.model import CompanyOverviews
 
 def get_company_by_name_exact(db: Session, name: str) -> CompanyOverviews | None:
     """이름으로 정확히 1개의 회사 정보를 조회합니다."""

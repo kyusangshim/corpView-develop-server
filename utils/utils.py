@@ -5,8 +5,8 @@ from domains.summary.schema import (
     NewsArticle,
     RawFinancialEntry,
 )
-from models.financial_statement import FinancialStatement
-from models.cached_news_article import CachedNewsArticle
+from domains.financials.model import FinancialStatement
+from domains.news.model import CachedNewsArticle
 from email.utils import parsedate_to_datetime
 
 

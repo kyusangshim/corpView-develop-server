@@ -6,7 +6,7 @@ from core.database import get_db
 from domains.auth.schema import Token
 from domains.users.schema import UserOut
 
-from models.user import User
+from domains.users.model import User
 from domains.auth.service import (
     oauth, 
     handle_google_callback, 

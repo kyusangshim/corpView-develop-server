@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, JSON, DateTime, UniqueConstraint
+from sqlalchemy import Column, Integer, String, JSON, DateTime, UniqueConstraint, ForeignKey
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship
 from core.database import Base
@@ -44,3 +44,21 @@ class User(Base):
         "UserIndustryFavorite", 
         back_populates="user"
     )
+
+
+
+class UserIndustryFavorite(Base):
+    __tablename__ = "user_industry_favorite"
+    __table_args__ = (
+        UniqueConstraint("user_id", "industry_id", name="uniq_user_industry"),
+        {"mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_unicode_ci"}
+    )
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, primary_key=True)
+    industry_id = Column(Integer, ForeignKey("industry_classification.id"), nullable=False, primary_key=True)
+
+    user = relationship("User", back_populates="favorites_industries")
+    industry = relationship("IndustryClassification")
+    __table_args__ = {
+        "mysql_charset": "utf8mb4",
+        "mysql_collate": "utf8mb4_unicode_ci"
+    }

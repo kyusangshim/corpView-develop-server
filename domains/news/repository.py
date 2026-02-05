@@ -1,7 +1,7 @@
 # /repository/news_repository.py
 
 from sqlalchemy.orm import Session
-from models.cached_news_article import CachedNewsArticle
+from domains.news.model import CachedNewsArticle
 from domains.news.schema import NewsArticle # Pydantic 스키마
 from typing import Dict, Any, List
 from datetime import datetime

@@ -1,7 +1,8 @@
 # /repository/financials_repository.py
 
 from sqlalchemy.orm import Session
-from models.financial_statement import FinancialStatement
+
+from domains.financials.model import FinancialStatement
 from typing import Dict, Any, List
 
 def get_financials_by_code(db: Session, corp_code: str) -> List[FinancialStatement]:
