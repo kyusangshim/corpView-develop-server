@@ -4,7 +4,10 @@ from core.database import Base
 
 class IndustryClassification(Base):
     __tablename__ = "industry_classification"
-    __table_args__ = {"mysql_charset": "utf8", "mysql_collate": "utf8_general_ci"}
+    __table_args__ = {
+        "mysql_charset": "utf8mb4",
+        "mysql_collate": "utf8mb4_unicode_ci"
+    }
 
     id = Column(Integer, primary_key=True)
 

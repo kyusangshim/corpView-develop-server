@@ -39,3 +39,8 @@ class User(Base):
         onupdate=lambda: datetime.now(SEOUL_TZ),
         nullable=False,
     )
+
+    favorites_industries = relationship(
+        "UserIndustryFavorite", 
+        back_populates="user"
+    )

@@ -14,4 +14,4 @@ starlette[full]
 pytz
 asyncio
 pandas
-
+aiohttp

@@ -1,11 +1,15 @@
-from sqlalchemy import Column, Text, TIMESTAMP, Integer
+from sqlalchemy import Column, Text, Integer
 from sqlalchemy.dialects.mysql import VARCHAR
 from core.database import Base
+from sqlalchemy.orm import relationship
 
 
 class CompanyOverviews(Base):
     __tablename__ = "company_overview"
-    __table_args__ = {"mysql_charset": "utf8", "mysql_collate": "utf8_general_ci"}
+    __table_args__ = {
+        "mysql_charset": "utf8mb4",
+        "mysql_collate": "utf8mb4_unicode_ci"
+    }
 
     corp_code = Column(VARCHAR(8), primary_key=True)
     corp_name = Column(VARCHAR(255))
@@ -21,4 +25,17 @@ class CompanyOverviews(Base):
     @property
     def category(self) -> str:
         return self.induty_name
+    
+
+    financials = relationship(
+        "FinancialStatement", 
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
+    
+    news = relationship(
+        "CachedNewsArticle", 
+        back_populates="company",
+        cascade="all, delete-orphan" 
+    )
 

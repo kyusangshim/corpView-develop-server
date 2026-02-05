@@ -1,84 +1,104 @@
-import httpx
-import html
+import json
 import asyncio
-from fastapi import HTTPException
-from typing import List, Dict
+import redis.asyncio as redis
+from repository import news_repository
+from clients import naver_news_client
+from utils.utils import _format_news_from_orm
+from core.database import SessionLocal
+from sqlalchemy.orm import Session
+from fastapi.logger import logger
 
-from core.config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
-from schemas.news import NewsArticle # 1단계에서 만든 스키마
-from utils.utils import _make_id
-
-# 카테고리 목록은 이 서비스를 사용하는 곳에 두는 것이 좋습니다.
 CATEGORIES = ["전체", "채용", "주가", "노사", "IT"]
+NEWS_TTL = 600
+NEWS_LOCK_TTL = 30          # 뉴스 생성 락 TTL
+LOCK_WAIT_TIMEOUT = 8       # 최대 대기
+LOCK_POLL_INTERVAL = 0.3
 
-async def fetch_news_by_query(query: str) -> List[NewsArticle]:
-    """
-    단일 쿼리로 Naver News API를 호출하고, 
-    결과를 NewsArticle 스키마 리스트로 반환합니다.
-    """
-    if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
-        # 서비스 단에서는 구체적인 예외를 발생시킵니다.
-        raise HTTPException(
-            status_code=500, 
-            detail="NAVER_CLIENT_ID 또는 NAVER_CLIENT_SECRET 환경변수가 없습니다."
-        )
-    
-    headers = {
-        "X-Naver-Client-Id": NAVER_CLIENT_ID,
-        "X-Naver-Client-Secret": NAVER_CLIENT_SECRET
-    }
-    url = f"https://openapi.naver.com/v1/search/news.json?query={query}&display=5&sort=sim"
-    
-    async with httpx.AsyncClient() as client:
+class NewsService:
+    def __init__(self, redis_client: redis.Redis, SessionLocal):
+        self.redis = redis_client
+        self.SessionLocal = SessionLocal
+
+    async def _save_to_l2_background(self, corp_code: str, data: dict):
+        """(Helper) L2 저장을 별도 스레드와 세션에서 'Fire and Forget'으로 실행"""
+        db: Session = SessionLocal() # 3. 이 작업을 위한 새 세션 생성
         try:
-            response = await client.get(url, headers=headers)
-            # HTTP 오류 (4xx, 5xx) 발생 시 예외 발생
-            response.raise_for_status() 
-            result = response.json()
-        
-        except httpx.HTTPStatusError as e:
-            # API 호출이 HTTP 상태 코드 오류로 실패한 경우
-            raise HTTPException(
-                status_code=e.response.status_code, 
-                detail=f"네이버 API 호출 실패: {e.response.text}"
-            )
+            await asyncio.to_thread(news_repository.upsert_news_articles, db, corp_code, data)
+            await asyncio.to_thread(db.commit) # 4. 작업 단위 커밋
         except Exception as e:
-            # JSON 파싱 실패, 네트워크 오류 등 기타 예외
-            raise HTTPException(
-                status_code=500, 
-                detail=f"네이버 API 응답 처리 중 오류: {str(e)}"
-            )
-        
-    articles = []
-    for item in result.get("items", []):
-        title = html.unescape(item["title"].replace("<b>", "").replace("</b>", ""))
-        link = item["link"]
-        pubDate = item["pubDate"]
-        
-        # Pydantic 모델(스키마) 객체로 생성
-        articles.append(NewsArticle(
-            id=_make_id(link),
-            title=title,
-            link=link,
-            pubDate=pubDate
-        ))
-    return articles
+            await asyncio.to_thread(db.rollback)
+        finally:
+            await asyncio.to_thread(db.close) # 5. 세션 닫기
+    
 
-async def fetch_all_news_by_category(company: str) -> Dict[str, List[NewsArticle]]:
-    """
-    모든 카테고리의 뉴스를 asyncio.gather로 병렬 조회합니다.
-    """
-    tasks = []
-    for cat in CATEGORIES:
-        if cat == "전체":
-            q = company
-        else:
-            q = f"{company} {cat}"
-        # fetch_news_by_query 함수를 호출하는 task를 리스트에 추가
-        tasks.append(fetch_news_by_query(q))
-    
-    # 모든 task를 병렬로 실행
-    results = await asyncio.gather(*tasks)
-    
-    # 카테고리와 결과 리스트를 딕셔너리로 매핑하여 반환
-    return {cat: news for cat, news in zip(CATEGORIES, results)}
+    async def get_news(self, name: str, corp_code: str):
+        key = f"details:news:{name}"
+        lock_key = f"details:news_lock:{name}"
+
+        cached = await self.redis.get(key)
+        if cached:
+            return json.loads(cached)
+
+        # 락 시도
+        got_lock = await self.redis.set(lock_key, "1", ex=NEWS_LOCK_TTL, nx=True)
+
+        # 락 실패: 누군가 생성 중 → 잠깐 기다렸다 캐시 재조회
+        if not got_lock:
+            waited = 0.0
+            while waited < LOCK_WAIT_TIMEOUT:
+                await asyncio.sleep(LOCK_POLL_INTERVAL)
+                waited += LOCK_POLL_INTERVAL
+
+                cached = await self.redis.get(key)
+                if cached:
+                    return json.loads(cached)
+
+            # 너무 오래 걸리면 L2 fallback
+            db: Session = SessionLocal()
+            try:
+                l2_data = await asyncio.to_thread(news_repository.get_cached_news_by_code, db, corp_code)
+                if l2_data:
+                    raw_data = _format_news_from_orm(l2_data)
+                    await self.redis.set(key, json.dumps(raw_data), ex=NEWS_TTL)
+                    return raw_data
+                return {}
+            finally:
+                await asyncio.to_thread(db.close)
+
+        # 락 성공: 내가 생성자
+        db: Session = SessionLocal()
+        try:
+            # 더블체크
+            cached = await self.redis.get(key)
+            if cached:
+                return json.loads(cached)
+
+            async def fetch_category(cat: str):
+                query = name if cat == "전체" else f"{name} {cat}"
+                return await naver_news_client.fetch_news_by_query(query)
+
+            tasks = [fetch_category(cat) for cat in CATEGORIES]
+            results = await asyncio.gather(*tasks)
+            raw_data = {cat: [a.dict() for a in lst] for cat, lst in zip(CATEGORIES, results)}
+
+            await self.redis.set(key, json.dumps(raw_data), ex=NEWS_TTL)
+            asyncio.create_task(self._save_to_l2_background(corp_code, raw_data))
+            return raw_data
+
+        except Exception as e:
+            await asyncio.to_thread(db.rollback)
+            # fallback
+            l2_data = await asyncio.to_thread(news_repository.get_cached_news_by_code, db, corp_code)
+            if l2_data:
+                raw_data = _format_news_from_orm(l2_data)
+                await self.redis.set(key, json.dumps(raw_data), ex=NEWS_TTL)
+                return raw_data
+            return {}
+
+        finally:
+            # 락 해제
+            try:
+                await self.redis.delete(lock_key)
+            except Exception:
+                pass
+            await asyncio.to_thread(db.close)

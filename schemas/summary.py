@@ -15,7 +15,7 @@ class NewsArticle(BaseModel):
     id: str
     title: str
     link: HttpUrl  # 기존 url → link로 이름 변경
-    pubDate: datetime  # string 형태로 와도 자동 파싱됨
+    pubDate: str  # string 형태로 와도 자동 파싱됨
 
 
 class Ratio(BaseModel):
@@ -25,10 +25,11 @@ class Ratio(BaseModel):
 
 
 class RawFinancialEntry(BaseModel):
-    자본총계: int
     매출액: int
     영업이익: int
     당기순이익: int
+    자산총계: int
+    자본총계: int
     ratio: Optional[Ratio] = None
 
     @field_validator("ratio", mode="before")
