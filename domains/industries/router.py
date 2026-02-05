@@ -1,7 +1,8 @@
 from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
 from core.database import get_db
-from repository import industry_repository, user_repository
+from domains.industries import repository as industry_repository
+from domains.users import repository as user_repository
 from schemas.user import IndustryCategoryNode # 스키마를 사용하셨네요. 좋습니다.
 from typing import List
 

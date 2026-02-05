@@ -9,7 +9,7 @@ from starlette.responses import RedirectResponse
 
 from core.database import get_db
 from core.config import SECRET_KEY, FRONTEND_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-from repository import user_repository 
+from domains.users import repository as user_repository
 from models.user import User
 from authlib.integrations.starlette_client import OAuth
 

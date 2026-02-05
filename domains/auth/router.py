@@ -6,7 +6,7 @@ from core.database import get_db
 from schemas.token import Token
 from schemas.user import UserOut
 from models.user import User
-from services.auth_service import (
+from domains.auth.service import (
     oauth, 
     handle_google_callback, 
     get_current_user
