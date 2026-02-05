@@ -1,21 +1,16 @@
 # /routers/details_final.py
 
 from fastapi import APIRouter, Query, Depends
-from sqlalchemy.orm import Session
-import redis.asyncio as redis
-from core.database import get_db
-from core.cache import get_redis
 
-from schemas.details import CompanyDetailResponse 
-from services import details_service # 1단계에서 만든 서비스
+from schemas.details import CompanyDetailResponse
+from core.deps import get_details_usecase
+from services.details_usecase import DetailsUseCase
 
 router = APIRouter()
 
 @router.get("/company-details", response_model=CompanyDetailResponse)
 async def get_integrated_company_details_final(
-    name: str = Query(...), 
-    db: Session = Depends(get_db),
-    redis_client: redis.Redis = Depends(get_redis)
+    name: str = Query(...),
+    usecase: DetailsUseCase = Depends(get_details_usecase),
 ):
-    
-    return await details_service.get_company_details(name, db, redis_client)
+    return await usecase.get_company_details(name)
