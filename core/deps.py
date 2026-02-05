@@ -8,7 +8,7 @@ from core.database import get_db, SessionLocal
 from core.cache import get_redis
 
 from services.financial_service import FinancialService
-from services.news_service import NewsService
+from domains.news.service import NewsService
 from domains.summary.service import SummaryService
 from domains.details.usecase import DetailsUseCase
 

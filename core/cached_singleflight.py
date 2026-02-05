@@ -5,7 +5,7 @@ from typing import Awaitable, Callable, Optional
 
 from core.redis_lock import singleflight
 
-USE_DISTRIBUTED_LOCK = False
+USE_DISTRIBUTED_LOCK = True
 
 async def cached_singleflight_str(
     *,

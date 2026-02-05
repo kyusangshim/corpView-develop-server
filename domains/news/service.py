@@ -1,10 +1,9 @@
-# services/news_service.py
+# domains/news/service.py
 
 import asyncio
 from sqlalchemy.orm import Session
 import redis.asyncio as redis
 
-from repository import news_repository
 from clients import naver_news_client
 from utils.utils import _format_news_from_orm
 from core.database import SessionLocal
@@ -12,6 +11,8 @@ from core.database import SessionLocal
 from core.cache_keys import details_news_key, lock_key
 from core.cached_singleflight import cached_singleflight_json
 from core.db_background import fire_and_forget_db
+
+from domains.news import repository as news_repository
 
 CATEGORIES = ["전체", "채용", "주가", "노사", "IT"]
 NEWS_TTL = 600
@@ -38,7 +39,7 @@ class NewsService:
             results = await asyncio.gather(*[fetch_category(c) for c in CATEGORIES])
             raw_data = {cat: [a.dict() for a in lst] for cat, lst in zip(CATEGORIES, results)}
 
-            # L2 저장은 공통 유틸로 Fire-and-Forget
+            # L2 저장은 Fire-and-Forget
             fire_and_forget_db(
                 self.SessionLocal,
                 news_repository.upsert_news_articles,

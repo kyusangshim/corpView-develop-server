@@ -5,7 +5,7 @@ import redis.asyncio as redis
 
 from repository import company_repository
 from services.financial_service import FinancialService
-from services.news_service import NewsService
+from domains.news.service import NewsService
 from domains.summary.service import SummaryService
 
 from schemas.company import CompanyInfo
